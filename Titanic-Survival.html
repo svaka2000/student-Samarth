@@ -1,0 +1,398 @@
+---
+layout: bootstrap
+title: Titanic Survival Predictor
+search_exclude: true
+description: Predict your chances of surviving the Titanic
+hide: true
+permalink: /titanic-survival
+---
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Titanic Survival Predictor</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <style>
+    body {
+      background-color: #0d1117;
+      color: #e6edf3;
+    }
+
+    .container {
+      background-color: #0d1117;
+    }
+
+    h2, h5, h6 {
+      color: #f0f6fc;
+    }
+
+    p {
+      color: #8b949e;
+    }
+
+    .card {
+      margin-bottom: 2rem;
+      box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.3);
+      border-radius: 0.5rem;
+      border: 1px solid #30363d;
+      background-color: #161b22;
+    }
+
+    .card-header {
+      border-top-left-radius: 0.5rem !important;
+      border-top-right-radius: 0.5rem !important;
+      background-color: #21262d !important;
+      border-bottom: 1px solid #30363d;
+      color: #f0f6fc;
+    }
+
+    .card-body {
+      background-color: #161b22;
+      color: #e6edf3;
+    }
+
+    .form-label {
+      color: #f0f6fc;
+      font-weight: 500;
+    }
+
+    .form-control, .form-select {
+      background-color: #21262d;
+      color: #e6edf3;
+      border-color: #30363d;
+    }
+
+    .form-control:focus, .form-select:focus {
+      background-color: #21262d;
+      color: #e6edf3;
+      border-color: #58a6ff;
+      box-shadow: 0 0 0 0.25rem rgba(88, 166, 255, 0.25);
+    }
+
+    .form-select option {
+      background-color: #21262d;
+      color: #e6edf3;
+    }
+
+    .btn-primary {
+      background-color: #238636;
+      border-color: #238636;
+      color: #ffffff;
+    }
+
+    .btn-primary:hover {
+      background-color: #2ea043;
+      border-color: #2ea043;
+    }
+
+    .btn-outline-secondary {
+      color: #8b949e;
+      border-color: #30363d;
+    }
+
+    .btn-outline-secondary:hover {
+      background-color: #30363d;
+      border-color: #30363d;
+      color: #f0f6fc;
+    }
+
+    .text-muted {
+      color: #8b949e !important;
+    }
+
+    .survival-bar-container {
+      height: 30px;
+      background-color: #21262d;
+      border-radius: 6px;
+      overflow: hidden;
+      margin-bottom: 0.5rem;
+    }
+
+    .survival-bar {
+      height: 100%;
+      border-radius: 6px;
+      transition: width 0.8s ease;
+      display: flex;
+      align-items: center;
+      padding-left: 10px;
+      font-weight: bold;
+      color: white;
+      font-size: 0.9rem;
+    }
+
+    .bar-survived {
+      background-color: #238636;
+    }
+
+    .bar-perished {
+      background-color: #da3633;
+    }
+
+    .result-icon {
+      font-size: 4rem;
+      text-align: center;
+      margin-bottom: 1rem;
+    }
+
+    .result-verdict {
+      font-size: 1.5rem;
+      font-weight: bold;
+      text-align: center;
+    }
+
+    .verdict-survived {
+      color: #3fb950;
+    }
+
+    .verdict-perished {
+      color: #f85149;
+    }
+
+    .feature-weight-bar-container {
+      height: 16px;
+      background-color: #21262d;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .feature-weight-bar {
+      height: 100%;
+      border-radius: 4px;
+      background-color: #1f6feb;
+    }
+
+    .table {
+      color: #e6edf3;
+      background-color: #161b22;
+    }
+
+    .table th {
+      background-color: #21262d;
+      color: #f0f6fc;
+      border-color: #30363d;
+    }
+
+    .table td {
+      border-color: #30363d;
+      background-color: #161b22;
+    }
+
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: #161b22; }
+    ::-webkit-scrollbar-thumb { background: #30363d; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #484f58; }
+  </style>
+</head>
+<body>
+  <div class="container mt-5 mb-5" style="max-width: 800px;">
+    <h2 class="text-center mb-2">Titanic Survival Predictor</h2>
+    <p class="text-center">Enter passenger details to predict survival chances using machine learning.</p>
+
+    <div class="card shadow">
+      <div class="card-header">
+        <h5 class="mb-0">Passenger Information</h5>
+      </div>
+      <div class="card-body">
+        <form id="titanic-form">
+          <div class="row g-3">
+
+            <div class="col-md-6">
+              <label for="pclass" class="form-label">Passenger Class</label>
+              <select class="form-select" id="pclass" required>
+                <option value="1">1st Class (Upper)</option>
+                <option value="2">2nd Class (Middle)</option>
+                <option value="3" selected>3rd Class (Lower)</option>
+              </select>
+            </div>
+
+            <div class="col-md-6">
+              <label for="sex" class="form-label">Sex</label>
+              <select class="form-select" id="sex" required>
+                <option value="male" selected>Male</option>
+                <option value="female">Female</option>
+              </select>
+            </div>
+
+            <div class="col-md-6">
+              <label for="age" class="form-label">Age</label>
+              <input type="number" class="form-control" id="age" min="0" max="120" step="1" value="28" required />
+            </div>
+
+            <div class="col-md-6">
+              <label for="fare" class="form-label">Fare Paid ($)</label>
+              <input type="number" class="form-control" id="fare" min="0" step="0.01" value="32.20" required />
+            </div>
+
+            <div class="col-md-6">
+              <label for="sibsp" class="form-label">Siblings / Spouses Aboard</label>
+              <input type="number" class="form-control" id="sibsp" min="0" max="10" value="0" required />
+            </div>
+
+            <div class="col-md-6">
+              <label for="parch" class="form-label">Parents / Children Aboard</label>
+              <input type="number" class="form-control" id="parch" min="0" max="10" value="0" required />
+            </div>
+
+            <div class="col-md-6">
+              <label for="embarked" class="form-label">Port of Embarkation</label>
+              <select class="form-select" id="embarked" required>
+                <option value="S" selected>Southampton (S)</option>
+                <option value="C">Cherbourg (C)</option>
+                <option value="Q">Queenstown (Q)</option>
+              </select>
+            </div>
+
+            <div class="col-md-6">
+              <label for="alone" class="form-label">Traveling Alone?</label>
+              <select class="form-select" id="alone">
+                <option value="true" selected>Yes — Traveling Alone</option>
+                <option value="false">No — With Family</option>
+              </select>
+            </div>
+
+          </div>
+
+          <div class="text-center mt-4">
+            <button type="button" class="btn btn-primary px-5" id="predict-btn">Predict Survival</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div id="results-card" class="card shadow" style="display: none;">
+      <div class="card-header">
+        <h5 class="mb-0">Prediction Results</h5>
+      </div>
+      <div class="card-body">
+
+        <div class="result-icon" id="result-icon">?</div>
+        <div class="result-verdict mb-4" id="result-verdict">—</div>
+
+        <h6 class="mb-2">Survival Probability</h6>
+        <div class="survival-bar-container mb-1">
+          <div class="survival-bar bar-survived" id="bar-survived" style="width: 0%;">0%</div>
+        </div>
+        <div class="d-flex justify-content-between mb-3">
+          <small class="text-muted">Survived</small>
+          <small class="text-muted" id="survived-pct">0%</small>
+        </div>
+
+        <div class="survival-bar-container mb-1">
+          <div class="survival-bar bar-perished" id="bar-perished" style="width: 0%;">0%</div>
+        </div>
+        <div class="d-flex justify-content-between mb-4">
+          <small class="text-muted">Perished</small>
+          <small class="text-muted" id="perished-pct">0%</small>
+        </div>
+
+        <h6 class="mb-3">Feature Importances</h6>
+        <div id="feature-weights">
+          <!-- Populated by JS -->
+        </div>
+
+        <div class="text-center mt-4">
+          <button type="button" class="btn btn-outline-secondary" id="reset-btn">Try Another Passenger</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="error-alert" class="alert mt-3" role="alert" style="display: none; background-color: #3d1919; border-color: #da3633; color: #f85149;"></div>
+  </div>
+
+<script type="module">
+  import { pythonURI, fetchOptions } from '{{site.baseurl}}/assets/js/api/config.js';
+
+  document.getElementById('predict-btn').addEventListener('click', async () => {
+    const errorAlert = document.getElementById('error-alert');
+    errorAlert.style.display = 'none';
+
+    const passenger = {
+      pclass:   parseInt(document.getElementById('pclass').value),
+      sex:      document.getElementById('sex').value,
+      age:      parseFloat(document.getElementById('age').value),
+      fare:     parseFloat(document.getElementById('fare').value),
+      sibsp:    parseInt(document.getElementById('sibsp').value),
+      parch:    parseInt(document.getElementById('parch').value),
+      embarked: document.getElementById('embarked').value,
+      alone:    document.getElementById('alone').value === 'true'
+    };
+
+    try {
+      const response = await fetch(`${pythonURI}/api/titanic/predict`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(passenger)
+      });
+
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({ message: response.statusText }));
+        throw new Error(err.message || `Server error: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      // data expected: { death: 0.XX, survive: 0.XX, feature_weights: {...} }
+      const survivePct = Math.round((data.survive ?? data.survival ?? 0) * 100);
+      const perishPct  = Math.round((data.death   ?? data.perish   ?? 0) * 100);
+
+      // Update bars
+      document.getElementById('bar-survived').style.width = `${survivePct}%`;
+      document.getElementById('bar-survived').textContent = `${survivePct}%`;
+      document.getElementById('bar-perished').style.width = `${perishPct}%`;
+      document.getElementById('bar-perished').textContent = `${perishPct}%`;
+      document.getElementById('survived-pct').textContent = `${survivePct}%`;
+      document.getElementById('perished-pct').textContent = `${perishPct}%`;
+
+      // Verdict
+      const icon    = document.getElementById('result-icon');
+      const verdict = document.getElementById('result-verdict');
+      if (survivePct >= 50) {
+        icon.textContent    = '🛟';
+        verdict.textContent = 'SURVIVED';
+        verdict.className   = 'result-verdict mb-4 verdict-survived';
+      } else {
+        icon.textContent    = '💀';
+        verdict.textContent = 'PERISHED';
+        verdict.className   = 'result-verdict mb-4 verdict-perished';
+      }
+
+      // Feature weights
+      const weightsDiv = document.getElementById('feature-weights');
+      weightsDiv.innerHTML = '';
+      const weights = data.feature_weights ?? {};
+      const maxWeight = Math.max(...Object.values(weights), 0.001);
+
+      Object.entries(weights)
+        .sort(([, a], [, b]) => b - a)
+        .forEach(([feature, weight]) => {
+          const barWidth = Math.round((weight / maxWeight) * 100);
+          weightsDiv.innerHTML += `
+            <div class="mb-2">
+              <div class="d-flex justify-content-between mb-1">
+                <small>${feature}</small>
+                <small class="text-muted">${(weight * 100).toFixed(1)}%</small>
+              </div>
+              <div class="feature-weight-bar-container">
+                <div class="feature-weight-bar" style="width: ${barWidth}%;"></div>
+              </div>
+            </div>`;
+        });
+
+      document.getElementById('results-card').style.display = 'block';
+      document.getElementById('results-card').scrollIntoView({ behavior: 'smooth' });
+
+    } catch (err) {
+      console.error(err);
+      errorAlert.textContent = `Error: ${err.message}`;
+      errorAlert.style.display = 'block';
+    }
+  });
+
+  document.getElementById('reset-btn').addEventListener('click', () => {
+    document.getElementById('titanic-form').reset();
+    document.getElementById('results-card').style.display = 'none';
+    document.getElementById('error-alert').style.display = 'none';
+  });
+</script>
+</body>
