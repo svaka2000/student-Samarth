@@ -2,6 +2,7 @@ HOST ?= localhost
 PORT ?= 4600
 REPO_NAME ?= student
 LOG_FILE = /tmp/jekyll$(PORT).log
+export RUBYOPT = -E UTF-8:UTF-8
 
 SHELL = /bin/bash -c
 .SHELLFLAGS = -e
