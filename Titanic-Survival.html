@@ -334,7 +334,7 @@ permalink: /titanic-survival
 
       // data expected: { death: 0.XX, survive: 0.XX, feature_weights: {...} }
       const survivePct = Math.round((data.survive ?? data.survival ?? 0) * 100);
-      const perishPct  = Math.round((data.death   ?? data.perish   ?? 0) * 100);
+      const perishPct  = Math.round((data.die ?? data.death ?? data.perish ?? 0) * 100);
 
       // Update bars
       document.getElementById('bar-survived').style.width = `${survivePct}%`;
