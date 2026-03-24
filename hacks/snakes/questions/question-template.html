@@ -1,0 +1,264 @@
+<!--
+  Question Template for Snakes and Ladders
+
+  This generic template displays a question based on query parameters in the URL.
+  Expected parameters:
+    - row (1–5)
+    - index (0–9)
+    - square (6–55) [optional; auto-derived if missing]
+
+  It loads question data from:
+    hacks/snakes/questions/questions_bank.js
+
+  On submit, it calls:
+    POST /api/snakes/answer-question
+  and then returns the player to:
+    ../game-board-part2.html
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Snakes and Ladders Question</title>
+
+  <!-- Shared game styles -->
+  <link rel="stylesheet" href="../../../assets/css/snakes-game.css">
+  <link rel="stylesheet" href="../../../assets/css/lesson-arcade.css">
+  <link rel="stylesheet" href="../../../assets/css/snakes-theme.css">
+  <style>
+    .question-page {
+      font-family: 'Space Grotesk', 'Segoe UI', sans-serif;
+    }
+    .question-shell .question-card {
+      color: #2b2c4a;
+    }
+    .options label {
+      display: block;
+      margin-bottom: 0.5rem;
+      cursor: pointer;
+      background: rgba(44, 63, 105, 0.08);
+      padding: 0.6rem 0.8rem;
+      border-radius: 10px;
+      transition: transform 0.2s ease, background 0.2s ease;
+    }
+    .options label:hover {
+      transform: translateX(4px);
+      background: rgba(90, 107, 176, 0.2);
+    }
+    #submit-btn {
+      margin-top: 1rem;
+      padding: 0.8rem 1rem;
+      background: linear-gradient(135deg, #ff9966, #ff5e62);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: 600;
+      box-shadow: 0 15px 35px rgba(255, 94, 98, 0.4);
+    }
+    #submit-btn:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+    }
+    .meta { margin-top: 0.75rem; font-size: 0.9rem; opacity: 0.8; }
+  </style>
+</head>
+<body class="question-page snakes-theme">
+  <div class="question-shell">
+    <div class="question-arcade" data-arcade-defer="true">
+      <div class="arcade-header">
+        <h2>Mini Challenge</h2>
+        <p>Complete the challenge to unlock the question!</p>
+      </div>
+      <div class="arcade-grid"></div>
+      <div class="arcade-status">Complete the challenge to unlock the question.</div>
+    </div>
+    <div id="question-container" class="question-card">
+      <h2 id="question-title">Question</h2>
+      <p id="question-text"></p>
+      <div id="options" class="options"></div>
+      <button id="submit-btn">Submit Answer</button>
+      <div class="meta" id="question-meta"></div>
+    </div>
+  </div>
+
+  <!-- Load the external question bank and MiniGames -->
+  <script src="questions_bank.js"></script>
+  <script src="../../../assets/js/theme-selector.js"></script>
+  <script src="../../../assets/js/mini-games.js"></script>
+  <script src="../../../assets/js/lesson-arcade.js"></script>
+
+  <script>
+    // RESPONSIBILITY: Determine API base URL based on environment
+    function getApiUrl() {
+      const isLocal = location.hostname === "localhost" || location.hostname === "127.0.0.1";
+      return isLocal
+        ? "http://localhost:8306/api"
+        : "https://snakes.opencodingsociety.com/api";
+    }
+
+    // RESPONSIBILITY: Parse question parameters from URL
+    function parseQuestionParams() {
+      const params = new URLSearchParams(window.location.search);
+      const row = parseInt(params.get('row'), 10) || 1;
+      const index = parseInt(params.get('index'), 10) || 0;
+      const SECTION2_START = 6;
+      const derivedSquare = SECTION2_START + ((row - 1) * 10) + index;
+      const square = parseInt(params.get('square'), 10) || derivedSquare;
+      return { row, index, square };
+    }
+
+    // RESPONSIBILITY: Load and validate question from bank
+    function loadQuestion(row, index) {
+      const BANK = window.QUESTIONS_BANK;
+      if (!BANK || !BANK[row] || !BANK[row][index]) {
+        console.error("Missing question data for row/index:", row, index, BANK);
+        alert("Question data missing. Please check questions_bank.js.");
+        window.location.href = '../game-board-part2.html';
+        return null;
+      }
+      return BANK[row][index];
+    }
+
+    // RESPONSIBILITY: Update quiz UI enabled state
+    function updateQuizState(enabled) {
+      document.querySelectorAll('input[name="answer"]').forEach(r => r.disabled = !enabled);
+      const submitBtn = document.getElementById('submit-btn');
+      submitBtn.disabled = !enabled;
+      submitBtn.style.opacity = enabled ? '1' : '0.5';
+    }
+
+    // RESPONSIBILITY: Poll until mini-game is marked complete
+    function checkMiniGameCompletion(onComplete) {
+      const arcadeZone = document.querySelector('.question-arcade');
+      if (arcadeZone && arcadeZone.dataset.arcadeCompleted === 'true') {
+        onComplete();
+        return;
+      }
+      setTimeout(() => checkMiniGameCompletion(onComplete), 500);
+    }
+
+    // RESPONSIBILITY: Initialize the arcade mini-game widget
+    function initArcadeGame(arcadeZone, row, index) {
+      if (!arcadeZone || !window.MiniGames) return;
+      const gameNames = window.MiniGames.GAME_NAMES[row] || [];
+      const gameName = gameNames[index % gameNames.length] || gameNames[0];
+      const gameObj = window.MiniGames.getGame(row, gameName);
+
+      arcadeZone.classList.add('arcade-zone', 'compact');
+      arcadeZone.dataset.arcadeLesson = row;
+      arcadeZone.dataset.arcadeGame = gameName;
+      arcadeZone.dataset.arcadeComplete = 'Challenge complete! Now answer the question.';
+      delete arcadeZone.dataset.arcadeDefer;
+
+      if (gameObj) {
+        arcadeZone.querySelector('.arcade-header h2').textContent = gameObj.name;
+        arcadeZone.querySelector('.arcade-header p').textContent = gameObj.description;
+      }
+
+      if (typeof window.initArcadeZone === 'function') {
+        window.initArcadeZone(arcadeZone);
+      }
+    }
+
+    // RESPONSIBILITY: Render question content to the DOM
+    function renderQuestion(question, row, index, square) {
+      document.getElementById('question-title').innerText = `Lesson ${row} • Question ${index + 1}`;
+      document.getElementById('question-text').innerText = question.prompt;
+      document.getElementById('question-meta').innerText = `Square: ${square} (Row ${row}, Index ${index})`;
+
+      const optionsDiv = document.getElementById('options');
+      optionsDiv.innerHTML = '';
+      question.options.forEach((opt, i) => {
+        const label = document.createElement('label');
+        const radio = document.createElement('input');
+        radio.type = 'radio';
+        radio.name = 'answer';
+        radio.value = i;
+        radio.disabled = true;
+        label.appendChild(radio);
+        label.appendChild(document.createTextNode(' ' + opt));
+        optionsDiv.appendChild(label);
+      });
+    }
+    // RESPONSIBILITY: POST the selected answer to the API
+    async function submitAnswerToApi(apiUrl, row, index, square, correct) {
+      const res = await fetch(`${apiUrl}/snakes/answer-question`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          square: Number(square) + 1,
+          row,
+          question_index: index,
+          correct,
+          bullets_earned: correct ? 2 : 0
+        })
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || data.message || 'Error submitting answer.');
+      }
+
+      return correct;
+    }
+    // RESPONSIBILITY: Handle submit button click
+    function handleSubmitClick(apiUrl, row, index, square, question, getMiniGameCompleted) {
+      return async () => {
+        if (!getMiniGameCompleted()) {
+          alert('Please complete the mini-game challenge first!');
+          return;
+        }
+
+        const selected = document.querySelector('input[name="answer"]:checked');
+        if (!selected) {
+          alert('Please select an answer.');
+          return;
+        }
+
+        const submitBtn = document.getElementById('submit-btn');
+        submitBtn.disabled = true;
+
+        try {
+          const correct = parseInt(selected.value, 10) === question.answer;
+          await submitAnswerToApi(apiUrl, row, index, square, correct);
+          alert(correct ? 'Correct! You earned 2 bullets.' : 'Incorrect. No bullets awarded.');
+          window.location.href = '../game-board-part2.html';
+        } catch (err) {
+          console.error(err);
+          alert(err.message || 'Network error.');
+          submitBtn.disabled = false;
+        }
+      };
+    }
+    // ORCHESTRATOR: Wire everything together on page load
+    function initQuestionPage() {
+      const apiUrl = getApiUrl();
+      const { row, index, square } = parseQuestionParams();
+      const question = loadQuestion(row, index);
+      if (!question) return;
+
+      let miniGameCompleted = false;
+
+      renderQuestion(question, row, index, square);
+      updateQuizState(miniGameCompleted);
+
+      initArcadeGame(document.querySelector('.question-arcade'), row, index);
+
+      checkMiniGameCompletion(() => {
+        miniGameCompleted = true;
+        updateQuizState(miniGameCompleted);
+      });
+
+      document.getElementById('submit-btn').addEventListener(
+        'click',
+        handleSubmitClick(apiUrl, row, index, square, question, () => miniGameCompleted)
+      );
+    }
+
+    document.addEventListener('DOMContentLoaded', initQuestionPage);
+  </script>
+</body>
+</html>
