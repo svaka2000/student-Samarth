@@ -1,21 +1,19 @@
-@import 'root-color-map.scss';
+@import "theme/legacy/root-color-map";
 @import "mixins/variables";
 @import "base/typography";
-@import "bathroom";
 @import "blogs";
-@import "calendar";
+@import "projects/all";  // Auto-generated project imports
 @import "chatbot";
 @import "forms/code-runner";
 @import "forms/ui-runner";
 @import "forms/game-runner";
+@import "forms/container-panel";
 @import "forms/pause-modal";
 @import "forms/leaderboard";
 @import "forms/game-engine";
 @import "forms/game-builder";
 @import "forms/game-dialogue-system";
-@import "hacks";
-@import "hacks_lxd";
-@import "hallpass";
+@import "forms/home-gamified";
 @import "microblog";
 @import "grading";
 @import "navbar";
@@ -23,7 +21,8 @@
 @import "quiz";
 @import "rps_lesson";
 @import "search";
-@import "user-preferences";
+@import "stack-clicker";
+@import "theme/user-preferences";
 // aesthetihawk stuff
 @import "materials/main.scss";
 @import "elements/main.scss";
@@ -32,6 +31,8 @@
 @import "lesson-player";
 @import "documentation";
 @import "api-documentation";
+@import "open-coding/pixel-submit-widget";
+@import "open-coding/grading_modules";
 
 
 html,
